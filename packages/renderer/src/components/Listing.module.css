@@ -1,0 +1,17 @@
+.container {
+    background: #444;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    outline: 5px solid var(--main-bg-color);
+    padding: 1em 0;
+}
+.container:hover {
+    filter: brightness(65%);
+}
+
+.text {
+    color: var(--main-text-color);
+    font-size: 2rem;
+}

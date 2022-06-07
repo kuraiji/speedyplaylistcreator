@@ -1,0 +1,123 @@
+.outer {
+    background: var(--main-bg-color);
+    width: 100vw;
+    height: 100vh;
+}
+
+.modules {
+    display: flex;
+}
+
+.albums {
+    display: flex;
+    flex-wrap: wrap;
+    height: 94vh;
+    width: 70vw;
+    margin-top: 1.5em;
+    margin-left: 1.5em;
+    background: #444;
+    justify-content: center;
+    overflow: scroll;
+    border-radius: 2.5%;
+}
+
+.albums::-webkit-scrollbar {
+    display: none;
+}
+
+.tracks {
+    display: flex;
+    flex-direction: column;
+    height: 94vh;
+    width: 70vw;
+    margin-top: 1.5em;
+    margin-left: 1.5em;
+    background: #444;
+    overflow: scroll;
+    border-radius: 2.5%;
+}
+
+.tracks::-webkit-scrollbar {
+    display: none;
+}
+
+.return {
+    background: var(--main-text-color);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin: .5em .5em;
+}
+
+.return:hover {
+    filter: brightness(65%);
+}
+
+.symbol {
+    color: black;
+    font-size: 4rem;
+    margin-left: .15em;
+    margin-top: .05em;
+}
+
+.playlist {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    height: 94vh;
+    flex-grow: 1;
+    margin-top: 1.5em;
+    margin-left: 1.5em;
+    margin-right: 1.5em;
+    background: #444;
+    align-items: center;
+    overflow: scroll;
+    border-radius: 2.5%;
+}
+.playlist::-webkit-scrollbar {
+    display: none;
+}
+.header {
+    color: var(--main-text-color);
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+.viewer {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2em;
+    margin-bottom: 1.6em;
+    height: 75vh;
+    width: 25vw;
+    background: #EEE;
+    overflow: scroll;
+}
+.viewer::-webkit-scrollbar {
+    display: none;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+}
+
+.button {
+    background: #666;
+    width: 8vw;
+    height: 6vh;
+    margin: 0 2em;
+    border-radius: 35%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.button:hover {
+    filter: brightness(90%);
+}
+
+.buttonText {
+    font-size: 2.8rem;
+    color: var(--main-text-color);
+    -webkit-text-stroke: .01px black;
+}

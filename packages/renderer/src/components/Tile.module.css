@@ -1,0 +1,27 @@
+.outer {
+    background: purple;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 1em;
+}
+
+.outer:hover {
+    filter: brightness(65%);
+}
+
+.text {
+    font-size: 1.6rem;
+    color: var(--main-text-color);
+    overflow: hidden;
+    text-align: center;
+    margin-top: .5em;
+}
+
+.image {
+    height: 100%;
+    width: 100%;
+}

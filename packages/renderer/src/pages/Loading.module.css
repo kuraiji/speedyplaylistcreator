@@ -1,0 +1,20 @@
+.outer {
+    width: 100vw;
+    height: 100vh;
+    background: var(--main-bg-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.text {
+    color: var(--main-text-color);
+    font-size: 3.2rem;
+}
+
+.bar {
+    margin-top: 2em;
+    width: 50vw;
+    height: 3vh;
+}
