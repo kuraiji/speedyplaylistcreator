@@ -2,6 +2,7 @@ import * as sqlite from "sqlite"
 import envPaths from "env-paths";
 import {Album, Track, TrackKeys} from "./types"
 import * as sqlite3 from "sqlite3";
+import {promises} from "fs";
 
 const TABLE_NAME = "tracks"
 
@@ -13,8 +14,9 @@ class PlaylistDatabase {
         const pathSeparator = process.platform == "win32" ? "\\" : "/";
         this.dbPath = `${paths.data}${pathSeparator}playlistbuilder.db`;
 
-        this.getDatabase().then((db) => {
-            db.run(`CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
+        promises.mkdir(paths.data).catch((err) => {console.log(err)}).finally(() => {
+            this.getDatabase().then((db) => {
+                db.run(`CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
                              ${TrackKeys.title} text not null, 
                              ${TrackKeys.artist} text not null, 
                              ${TrackKeys.album} text not null, 
@@ -22,6 +24,7 @@ class PlaylistDatabase {
                              ${TrackKeys.track_num} number not null, 
                              ${TrackKeys.disc_num} number not null, 
                              ${TrackKeys.path} text primary key)`).then();
+            });
         });
     }
 
@@ -30,7 +33,7 @@ class PlaylistDatabase {
     }
 
     quoteSafety(original: string) : string {
-        return original.replace('\'', '\'\'');
+        return original.replaceAll('\'', '\'\'');
     }
 
     async addTrack(track: Track) {
@@ -49,8 +52,8 @@ class PlaylistDatabase {
         const db = await this.getDatabase();
         const row = (await db.get(
             `SELECT * FROM ${TABLE_NAME} 
-                WHERE ${TrackKeys.album} LIKE '%${this.quoteSafety(album.album)}%' AND
-                ${TrackKeys.album_artist} LIKE '%${this.quoteSafety(album.album_artist)}%'
+                WHERE ${TrackKeys.album} LIKE '${this.quoteSafety(album.album)}' AND
+                ${TrackKeys.album_artist} LIKE '${this.quoteSafety(album.album_artist)}'
                 ORDER BY ${TrackKeys.album_artist} ASC`)
         ) as Track;
         return row.path;
@@ -60,8 +63,8 @@ class PlaylistDatabase {
         const db = await this.getDatabase();
         return (await db.all(
                 `SELECT * FROM ${TABLE_NAME} 
-                WHERE ${TrackKeys.album} LIKE '%${this.quoteSafety(album.album)}%' AND
-                ${TrackKeys.album_artist} LIKE '%${this.quoteSafety(album.album_artist)}%'
+                WHERE ${TrackKeys.album} LIKE '${this.quoteSafety(album.album)}' AND
+                ${TrackKeys.album_artist} LIKE '${this.quoteSafety(album.album_artist)}'
                 ORDER BY ${TrackKeys.disc_num}, ${TrackKeys.track_num}`)
         ) as Array<Track>;
     }

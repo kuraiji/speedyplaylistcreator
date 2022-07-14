@@ -1,7 +1,7 @@
 import { glob } from "glob";
 import FastGlob, {} from "fast-glob";
 import * as mm from 'music-metadata'
-import fs from "fs";
+import fs, {promises} from "fs";
 import readline from 'readline';
 import { BrowserWindow } from "electron";
 import PlaylistDatabase from "./playlist-database";
@@ -35,6 +35,12 @@ export module PlaylistManagerOld {
         async indexSongs(win: BrowserWindow) : Promise<void> {
             let index = 0;
             for await (const path of this.paths) {
+                if((await promises.stat(path)).size < 100000) {
+                    console.log(path)
+                    index++;
+                    win?.webContents.send('manager:updateIndex', index);
+                    continue;
+                }
                 const metadata = await mm.parseFile(path);
                 let title: string = typeof metadata.common.title !== "undefined" ? metadata.common.title : "";
                 let artist: string = typeof metadata.common.artist !== "undefined" ? metadata.common.artist : "";
@@ -140,6 +146,11 @@ export module PlaylistManager {
         if(typeof callback !== "undefined") callback[0](files.length);
         let index = 0;
         for await (const file of files) {
+            if((await promises.stat(file)).size < 50000) {
+                index++;
+                if(typeof callback !== "undefined") callback[1](index);
+                continue;
+            }
             const metadata = await mm.parseFile(file);
             let title: string = typeof metadata.common.title !== "undefined" ? metadata.common.title : "";
             let artist: string = typeof metadata.common.artist !== "undefined" ? metadata.common.artist : "";
@@ -149,7 +160,15 @@ export module PlaylistManager {
             let disc_num: number = typeof metadata.common.disk.no === "number" ? metadata.common.disk.no : 0;
             if(artist === "") artist = album_artist;
             if(album_artist === "") album_artist = artist;
-            database.addTrack({title: title, artist: artist, album: album, album_artist: album_artist, track_num: track_num, disc_num: disc_num, path: file});
+            database.addTrack({
+                title: title,
+                artist: artist,
+                album: album,
+                album_artist: album_artist,
+                track_num: track_num,
+                disc_num: disc_num,
+                path: file
+            }).then();
             index++;
             if(typeof callback !== "undefined") callback[1](index);
         }
