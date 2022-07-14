@@ -13,3 +13,8 @@ export type Track = {
     disc_num: number;
     path: string;
 }
+
+export interface Album {
+    album: string;
+    album_artist: string;
+}

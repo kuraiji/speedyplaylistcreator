@@ -21,13 +21,19 @@ contextBridge.exposeInMainWorld('electron', {
   saveFile : () => ipcRenderer.invoke("dialog:saveFile")
 })
 contextBridge.exposeInMainWorld('manager', {
+  /*            v1 Functions                 */
   findSongs : (arg: string) => ipcRenderer.invoke("manager:findSongs", arg),
   indexSongs : () => ipcRenderer.send('manager:indexSongs'),
   updateIndex : (callback: any) => ipcRenderer.on('manager:updateIndex', callback),
   addTrack : (callback: any) => ipcRenderer.on('manager:addTrack', callback),
   coverArt : (track: any) => ipcRenderer.invoke('manager:coverArt', track),
   savePlaylist : (playlistPath: string, songPaths: string[]) => ipcRenderer.invoke('manager:savePlaylist', playlistPath, songPaths),
-  loadPlaylist : (playlistPath: string) => ipcRenderer.invoke('manager:loadPlaylist', playlistPath)
+  loadPlaylist : (playlistPath: string) => ipcRenderer.invoke('manager:loadPlaylist', playlistPath),
+  /*            v2 Functions                    */
+  maxSongs : (callback: any) => ipcRenderer.on('manager:maxSongs', callback),
+  getAlbums : () => ipcRenderer.invoke('manager:getAlbums'),
+  getCoverArt : (album: any) => ipcRenderer.invoke('manager:getCoverArt', album),
+  getTracksFromAlbum : (album: any) => ipcRenderer.invoke('manager:getTracksFromAlbum', album),
 })
 
 // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.

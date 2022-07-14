@@ -1,19 +1,28 @@
 import type {Component} from "solid-js";
+import {onMount} from "solid-js";
 import Styles from "./Landing.module.css"
-import {Pages} from "@/types";
+import {Album, Pages} from "@/types";
 import {setCurrentPage, setMaxSong} from "@/store";
 
 const Landing : Component = () => {
 
     function openFolderDialog() {
         window.electron.openFolder().then((res)=> {
-            window.manager.findSongs(res).then((res) => {
-                if(res < 1) return;
-                setMaxSong(res);
-                setCurrentPage(Pages.Loading);
-            });
+            window.manager.findSongs(res).then();
         });
     }
+
+    onMount(() => {
+        window.manager.maxSongs((_event, maxSong) => {
+            if(maxSong < 1) return;
+            setMaxSong(maxSong);
+            setCurrentPage(Pages.Loading);
+        });
+        window.manager.getAlbums().then((res) => {
+            if((res as Array<Album>).length < 1) return;
+            setCurrentPage(Pages.Main);
+        });
+    });
 
     return(
         <div class={Styles.outer}>

@@ -1,11 +1,14 @@
 import { glob } from "glob";
+import FastGlob, {} from "fast-glob";
 import * as mm from 'music-metadata'
 import fs from "fs";
 import readline from 'readline';
 import { BrowserWindow } from "electron";
+import PlaylistDatabase from "./playlist-database";
+import { PlaylistData } from "./playlist-data";
+import {Album} from "./types";
 
-export module PlaylistManager {
-
+export module PlaylistManagerOld {
     export class Manager {
         private tracks: Track[];
         baseDir: string;
@@ -86,7 +89,9 @@ export module PlaylistManager {
             }
             await fs.promises.writeFile(filePath, "#EXTM3U\n");
             for await (const path of songPaths) {
-                const localPath = path.replace(`${this.baseDir}/`, '');
+                //const localPath = path.replace(`${this.baseDir}/`, '');
+                const baseDir = (await PlaylistData.loadJson()).base_dir;
+                const localPath = path.replace(`${baseDir}/`, '');
                 await fs.promises.appendFile(filePath, `#EXTINF:\n${localPath}\n`);
             }
         }
@@ -125,6 +130,51 @@ export module PlaylistManager {
             this.disc_num = disc_num;
             this.title = title;
             this.artist = artist;
+        }
+    }
+}
+
+export module PlaylistManager {
+    export async function scanSongs(path: string, database: PlaylistDatabase, callback?: [(arg0: number)=>void, (arg0: number)=>void]) {
+        const files = await FastGlob(`${path}/**/*.{mp3,flac,wav}`);
+        if(typeof callback !== "undefined") callback[0](files.length);
+        let index = 0;
+        for await (const file of files) {
+            const metadata = await mm.parseFile(file);
+            let title: string = typeof metadata.common.title !== "undefined" ? metadata.common.title : "";
+            let artist: string = typeof metadata.common.artist !== "undefined" ? metadata.common.artist : "";
+            let album: string = typeof metadata.common.album !== "undefined" ? metadata.common.album : "";
+            let album_artist: string = typeof metadata.common.albumartist !== "undefined" ? metadata.common.albumartist : "";
+            let track_num: number = typeof metadata.common.track.no === "number" ? metadata.common.track.no : 0;
+            let disc_num: number = typeof metadata.common.disk.no === "number" ? metadata.common.disk.no : 0;
+            if(artist === "") artist = album_artist;
+            if(album_artist === "") album_artist = artist;
+            database.addTrack({title: title, artist: artist, album: album, album_artist: album_artist, track_num: track_num, disc_num: disc_num, path: file});
+            index++;
+            if(typeof callback !== "undefined") callback[1](index);
+        }
+        await PlaylistData.storeJson({base_dir: path});
+    }
+
+    export async function getCoverArt(database: PlaylistDatabase, album: Album) : Promise<Buffer|undefined> {
+        const path = await database.getAlbumPath(album);
+        const metadata = await mm.parseFile(path);
+        const picture = metadata.common.picture;
+        const trackDir = `${path.substring(0, path.lastIndexOf("/"))}/`;
+        const images = glob.sync("/*.{jpg,jpeg,png.bmp}", {root: trackDir});
+        if(typeof picture !== "undefined" && picture.length > 0) {
+            return picture?.at(0)!.data;
+        }
+        else if(images.length > 0) {
+            let coverImage: string|undefined = undefined;
+            images.forEach((image) => {
+                const filename = image.split('/').at(-1)?.toLowerCase();
+                if(["front", "cover", "folder"].some(substr => filename!.includes(substr))) {
+                    coverImage = image;
+                }
+            });
+            if(typeof coverImage === "undefined") coverImage = images.at(0);
+            return await fs.promises.readFile(coverImage!);
         }
     }
 }

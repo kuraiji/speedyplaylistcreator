@@ -1,8 +1,10 @@
-import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
-import { release } from 'os'
-import { join } from 'path'
-import { PlaylistManager } from "./playlist-manager";
+import {app, BrowserWindow, dialog, ipcMain, shell} from 'electron'
+import {release} from 'os'
+import {join} from 'path'
+import {PlaylistManager, PlaylistManagerOld} from "./playlist-manager";
 import './samples/electron-store'
+import PlaylistDatabase from "./playlist-database";
+import {Album} from "./types";
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -77,41 +79,41 @@ app.on('activate', () => {
 })
 
 //Playlist Manager Initialization
-const manager = new PlaylistManager.Manager();
+const manager = new PlaylistManagerOld.Manager();
+const database = new PlaylistDatabase();
 
 //Electron API Calls
 ipcMain.handle('dialog:openFolder', async() => {
-  win?.setFocusable(false);
   let res = await dialog.showOpenDialog(win!,{
     properties: ['openDirectory'],
     title: "Select the top-level directory..."
   });
-  win?.setFocusable(true);
   return res.filePaths[0];
 })
 ipcMain.handle('dialog:openFile', async() => {
-  win?.setFocusable(false);
   let res = await dialog.showOpenDialog(win!,{
     title: "Select your playlist file...",
     defaultPath: manager.baseDir,
     filters: [{name: "M3U/M3U8 Multimedia File", extensions: ["m3u", "m3u8"]}]
   });
-  win?.setFocusable(true);
   return res.filePaths[0];
 })
 ipcMain.handle('dialog:saveFile', async() => {
-  win?.setFocusable(false);
   let res = await dialog.showSaveDialog(win!,{
     title: "Select where you want to save your playlist...",
     defaultPath: manager.baseDir,
     filters: [{name: "M3U/M3U8 Multimedia File", extensions: ["m3u", "m3u8"]}]
   });
-  win?.setFocusable(true);
   return res.filePath;
 })
+//Manager API Calls
 ipcMain.handle('manager:findSongs', async(event, message) => {
   if(typeof message !== "string") return 0;
-  return await manager.findSongs(message);
+  await PlaylistManager.scanSongs(message, database, [
+    (maxSize: number)=>{win?.webContents.send('manager:maxSongs', maxSize);},
+    (maxSize: number)=>{win?.webContents.send('manager:updateIndex', maxSize);}
+  ]);
+  return undefined;
 })
 ipcMain.on("manager:indexSongs", async() => {
   await manager.indexSongs(win!);
@@ -125,4 +127,16 @@ ipcMain.handle("manager:savePlaylist", async(event, playlistPath, songPaths) => 
 })
 ipcMain.handle("manager:loadPlaylist", async(event, filePath) => {
   return await manager.loadPlaylist(filePath);
+})
+// Manager v2 API Calls
+ipcMain.handle("manager:getAlbums", async () => {
+  return await database.selectAllAlbums();
+})
+ipcMain.handle("manager:getCoverArt", async (event, message) => {
+  const parsedMessage = JSON.parse(message);
+  return await PlaylistManager.getCoverArt(database, parsedMessage as Album);
+})
+ipcMain.handle("manager:getTracksFromAlbum", async (event, message) => {
+  const parsedMessage = JSON.parse(message);
+  return await database.getTracksFromAlbum(parsedMessage as Album);
 })

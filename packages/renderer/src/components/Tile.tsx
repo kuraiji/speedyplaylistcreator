@@ -1,19 +1,20 @@
 import { Component, JSX, onMount, createSignal, Show } from "solid-js"
 import Styles from "./Tile.module.css"
-import { getFirstTrack } from "@/store";
 import type { Buffer } from 'node:buffer';
+import { Album } from "@/types";
 
 export interface TileProps extends JSX.PropAttributes {
-    album: string;
-    callback: (arg0: string) => void;
+    album: Album
+    callback: (arg0: Album) => void;
 }
 
 const Tile : Component<TileProps> = (props: TileProps) => {
     const [cover, setCover] = createSignal();
+
     onMount(() => {
-        if(props.album === undefined) return;
-        window.manager.coverArt(getFirstTrack(props.album)).then((res) => {
-            if(res === undefined) return;
+        if(typeof props.album === "undefined") return;
+        window.manager.getCoverArt(JSON.stringify(props.album)).then((res) => {
+            if(typeof res === "undefined") return;
             setCover(res);
         })
     });
@@ -28,8 +29,8 @@ const Tile : Component<TileProps> = (props: TileProps) => {
         <li class={Styles.outer} onClick={()=>{props.callback(props.album)}}>
             <Show when={cover() !== undefined} fallback={
                 <>
-                    <p class={`${Styles.text} ${Styles.top}`}>{props.album?.split("|")[0]}</p>
-                    <p class={`${Styles.text} ${Styles.bottom}`}>{props.album?.split("|")[1]}</p>
+                    <p class={`${Styles.text} ${Styles.top}`}>{props.album?.album}</p>
+                    <p class={`${Styles.text} ${Styles.bottom}`}>{props.album?.album_artist}</p>
                 </>
             }>
                 <img src={getCover()} class={Styles.image} alt=""/>

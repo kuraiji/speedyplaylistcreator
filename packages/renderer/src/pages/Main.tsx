@@ -1,9 +1,9 @@
-import { Component, For, Show, createSignal } from "solid-js";
+import {Component, For, Show, createSignal, onMount} from "solid-js";
 import Styles from "./Main.module.css"
-import { getAlbums, getAlbumTracks } from "@/store";
+import {setNewAlbums, getNewAlbums} from "@/store";
 import Tile from "@/components/Tile";
 import Listing from "@/components/Listing";
-import { Track } from "@/types";
+import {Album, Track} from "@/types";
 
 const Main : Component = () => {
 
@@ -11,27 +11,21 @@ const Main : Component = () => {
     const [tracks, setTracks] = createSignal(new Array<Track>());
     const [playlist, setPlaylist] = createSignal(new Array<string>());
 
-    const onAlbumClick = (album: string) => {
-        if(album === undefined) return;
-        let sortedTracks = getAlbumTracks(album);
-        sortedTracks!.sort((first, second) => {
-            if(first.disc_num > second.disc_num) {
-                return 1;
-            }
-            else if(second.disc_num > first.disc_num) {
-                return -1;
-            }
-            else if(first.track_num > second.track_num) {
-                return 1;
-            }
-            else if(second.track_num > first.track_num) {
-                return -1;
-            }
-            return 0;
-        })
-        setTracks(sortedTracks!);
-        setSongModule(true);
-    };
+    onMount(() => {
+        window.manager.getAlbums().then((res) => {
+            if(typeof res === "undefined") return;
+            setNewAlbums(res as Array<Album>);
+        });
+    });
+
+    const onAlbumClick = (album: Album) => {
+        if(typeof album === "undefined") return;
+        window.manager.getTracksFromAlbum(JSON.stringify(album))
+            .then((res) => {
+                setTracks(res as Array<Track>);
+                setSongModule(true);
+            });
+    }
 
     const onTrackClick = (path: string) => {
        setPlaylist([...playlist(), path]);
@@ -65,7 +59,7 @@ const Main : Component = () => {
             <div class={Styles.modules}>
                 <Show when={songModule()} fallback={
                     <ul class={Styles.albums}>
-                        <For each={Array.from(getAlbums().keys())}>
+                        //<For each={getNewAlbums()}>
                             {(album) => <Tile album={album} callback={onAlbumClick}/>}
                         </For>
                     </ul>
