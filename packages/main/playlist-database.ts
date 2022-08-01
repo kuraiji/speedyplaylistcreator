@@ -68,6 +68,18 @@ class PlaylistDatabase {
                 ORDER BY ${TrackKeys.disc_num}, ${TrackKeys.track_num}`)
         ) as Array<Track>;
     }
+
+    async getTracksFromPaths(paths: Array<string>) : Promise<Array<Track>> {
+        const tracks = new Array<Track>();
+        const db = await this.getDatabase();
+        const stmt = await db.prepare(`SELECT * FROM ${TABLE_NAME} WHERE ${TrackKeys.path} LIKE ?`);
+        for (const path of paths) {
+            const result = await stmt.get(`%${path}%`) as Track;
+            tracks.push(result);
+        }
+        await stmt.finalize();
+        return tracks;
+    }
 }
 
 export default PlaylistDatabase;

@@ -1,6 +1,6 @@
 import {Component, For, Show, createSignal, onMount} from "solid-js";
 import Styles from "./Main.module.css"
-import {setNewAlbums, getNewAlbums} from "@/store";
+import {setNewAlbums, getNewAlbums, getPlaylist, setPlaylist, addToPlaylist} from "@/store";
 import Tile from "@/components/Tile";
 import Listing from "@/components/Listing";
 import {Album, Track} from "@/types";
@@ -9,7 +9,6 @@ const Main : Component = () => {
 
     const [songModule, setSongModule] = createSignal(false);
     const [tracks, setTracks] = createSignal(new Array<Track>());
-    const [playlist, setPlaylist] = createSignal(new Array<string>());
 
     onMount(() => {
         window.manager.getAlbums().then((res) => {
@@ -27,15 +26,19 @@ const Main : Component = () => {
             });
     }
 
-    const onTrackClick = (path: string) => {
-       setPlaylist([...playlist(), path]);
-       document.getElementById("scroll")!.scrollTop = document.getElementById("scroll")!.scrollHeight;
+    const onTrackClick = (track: Track) => {
+        if(getPlaylist().some(({path}) => path === track.path)) {
+            setPlaylist(getPlaylist().filter(({path}) => path !== track.path));
+            return;
+        }
+        addToPlaylist(track);
+        document.getElementById("scroll")!.scrollTop = document.getElementById("scroll")!.scrollHeight;
     }
 
     const onSaveClick = () => {
-        if(playlist().length < 1) return;
+        if(getPlaylist().length < 1) return;
         window.electron.saveFile().then((res)=>{
-            window.manager.savePlaylist(res, playlist()).then();
+            window.manager.savePlaylist(res, getPlaylist().map(a => a.path)).then();
         })
     }
 
@@ -43,15 +46,15 @@ const Main : Component = () => {
         window.electron.openFile().then((res)=>{
             window.manager.loadPlaylist(res).then((res)=> {
                 if(res.length != 0)
-                setPlaylist(res);
+                setPlaylist([...(res as Track[])]);
             })
         })
     }
 
     const onRemoveTrack = (index: number) => {
-        let newList = [...playlist()];
+        let newList = [...getPlaylist()];
         newList.splice(index, 1);
-        setPlaylist(newList);
+        setPlaylist([...newList]);
     }
 
     return (
@@ -59,7 +62,7 @@ const Main : Component = () => {
             <div class={Styles.modules}>
                 <Show when={songModule()} fallback={
                     <ul class={Styles.albums}>
-                        //<For each={getNewAlbums()}>
+                        <For each={getNewAlbums()}>
                             {(album) => <Tile album={album} callback={onAlbumClick}/>}
                         </For>
                     </ul>
@@ -76,8 +79,8 @@ const Main : Component = () => {
                 <div class={Styles.playlist}>
                     <p class={Styles.header}>Playlist Panel</p>
                     <div class={Styles.viewer} id="scroll">
-                        <For each={playlist()}>
-                            {(path, i) => <p onClick={()=>{onRemoveTrack(i())}}>{path.split("/").at(-1)}</p>}
+                        <For each={getPlaylist()}>
+                            {(track, i) => <p onClick={()=>{onRemoveTrack(i())}}>{track.path.split("/").at(-1)}</p>}
                         </For>
                     </div>
                     <div class={Styles.buttonContainer}>

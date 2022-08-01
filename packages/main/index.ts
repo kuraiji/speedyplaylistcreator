@@ -126,7 +126,8 @@ ipcMain.handle("manager:savePlaylist", async(event, playlistPath, songPaths) => 
   return await manager.savePlaylist(playlistPath, songPaths);
 })
 ipcMain.handle("manager:loadPlaylist", async(event, filePath) => {
-  return await manager.loadPlaylist(filePath);
+  const paths =  await manager.loadPlaylist(filePath);
+  return await database.getTracksFromPaths(paths);
 })
 // Manager v2 API Calls
 ipcMain.handle("manager:getAlbums", async () => {

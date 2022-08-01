@@ -11,7 +11,15 @@
     filter: brightness(65%);
 }
 
+.selected {
+    background: var(--main-accent-color);
+}
+
 .text {
     color: var(--main-text-color);
     font-size: 2rem;
+}
+
+.textSelected {
+    color: #111;
 }

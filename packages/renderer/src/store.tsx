@@ -6,6 +6,7 @@ const [state, setState] = createStore({
     page: Pages.Landing,
     albums: new Map<string, Track[]>(),
     newAlbums: new Array<Album>(),
+    playlist: new Array<Track>()
 });
 
 export const getMaxSongs = () => {return state.maxSongs};
@@ -14,3 +15,6 @@ export const getCurrentPage = () => {return state.page};
 export const setCurrentPage = (p : Pages) => {setState({page: p})};
 export const getNewAlbums = () => {return state.newAlbums;};
 export const setNewAlbums = (albums: Array<Album>) => {setState({newAlbums: [...albums]});};
+export const getPlaylist = () => {return state.playlist;};
+export const setPlaylist = (playlist: Array<Track>) => {setState({playlist: [...playlist]})};
+export const addToPlaylist = (track: Track) => {setState({playlist: [...getPlaylist(), track]})};

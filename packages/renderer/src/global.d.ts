@@ -20,7 +20,7 @@ declare global {
       addTrack: (arg0: (arg0: any, arg1: [string, import('./types').Track])=> void) => void,
       coverArt: (arg0: any) => Promise<any>,
       savePlaylist: (arg0: string, arg1: string[]) => Promise<void>,
-      loadPlaylist: (arg0: string) => Promise<string[]>,
+      loadPlaylist: (arg0: string) => Promise<Array<any>>,
       //v2 Functions
       maxSongs: (arg0: (arg0: any, arg1: number) => void) => void,
       getAlbums: () => Promise<any>,

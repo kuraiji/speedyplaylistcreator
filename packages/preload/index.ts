@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld('manager', {
   addTrack : (callback: any) => ipcRenderer.on('manager:addTrack', callback),
   coverArt : (track: any) => ipcRenderer.invoke('manager:coverArt', track),
   savePlaylist : (playlistPath: string, songPaths: string[]) => ipcRenderer.invoke('manager:savePlaylist', playlistPath, songPaths),
-  loadPlaylist : (playlistPath: string) => ipcRenderer.invoke('manager:loadPlaylist', playlistPath),
+  loadPlaylist : (playlist: any) => ipcRenderer.invoke('manager:loadPlaylist', playlist),
   /*            v2 Functions                    */
   maxSongs : (callback: any) => ipcRenderer.on('manager:maxSongs', callback),
   getAlbums : () => ipcRenderer.invoke('manager:getAlbums'),
