@@ -80,7 +80,7 @@ const Main : Component = () => {
                     <p class={Styles.header}>Playlist Panel</p>
                     <div class={Styles.viewer} id="scroll">
                         <For each={getPlaylist()}>
-                            {(track, i) => <p onClick={()=>{onRemoveTrack(i())}}>{track.path.split("/").at(-1)}</p>}
+                            {(track, i) => <p class={Styles.playlistItem} onClick={()=>{onRemoveTrack(i())}}>{`${track.title} - ${track.album_artist === "" ? track.artist : track.album_artist}`}</p>}
                         </For>
                     </div>
                     <div class={Styles.buttonContainer}>
@@ -89,6 +89,9 @@ const Main : Component = () => {
                         </div>
                         <div class={Styles.button} onClick={onLoadClick}>
                             <p class={Styles.buttonText}>Load</p>
+                        </div>
+                        <div class={Styles.button} onClick={()=>{setPlaylist([])}}>
+                            <p class={Styles.buttonText}>Clear</p>
                         </div>
                     </div>
                 </div>

@@ -22,7 +22,7 @@ const Loading : Component = () => {
     return (
         <div class={Styles.outer}>
             <p class={Styles.text}>Now Loading...</p>
-            <progress class={Styles.bar} max={getMaxSongs() - 1} aria-valuemin={0} value={index()}></progress>
+            <progress class={Styles.bar} max={getMaxSongs() -1} aria-valuemin={0} value={index()}></progress>
         </div>
     )
 }

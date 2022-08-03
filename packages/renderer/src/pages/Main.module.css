@@ -90,7 +90,7 @@
     margin-bottom: 1.6em;
     height: 75vh;
     width: 25vw;
-    background: #EEE;
+    background: lightgrey;
     overflow: scroll;
 }
 .viewer::-webkit-scrollbar {
@@ -106,18 +106,27 @@
     background: #666;
     width: 8vw;
     height: 6vh;
-    margin: 0 2em;
-    border-radius: 35%;
+    margin: 0 .5em;
+    border-radius: 25%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .button:hover {
-    filter: brightness(90%);
+    filter: brightness(80%);
 }
 
 .buttonText {
     font-size: 2.8rem;
     color: var(--main-text-color);
     -webkit-text-stroke: .01px black;
+}
+
+.playlistItem {
+    font-size: 1.6rem;
+    margin-bottom: .5em;
+}
+
+.playlistItem:hover {
+    color: red;
 }

@@ -3,6 +3,7 @@ import envPaths from "env-paths";
 import {Album, Track, TrackKeys} from "./types"
 import * as sqlite3 from "sqlite3";
 import {promises} from "fs";
+import {Statement} from "sqlite"
 
 const TABLE_NAME = "tracks"
 
@@ -36,16 +37,13 @@ class PlaylistDatabase {
         return original.replaceAll('\'', '\'\'');
     }
 
-    async addTrack(track: Track) {
-        const db = await this.getDatabase();
-        const stmt = await db.prepare(`INSERT INTO ${TABLE_NAME} VALUES (?,?,?,?,?,?,?)`);
+    async addTrack(track: Track, stmt: Statement<sqlite3.Statement>) {
         await stmt.run(track[TrackKeys.title], track[TrackKeys.artist], track[TrackKeys.album], track[TrackKeys.album_artist], track[TrackKeys.track_num], track[TrackKeys.disc_num], track[TrackKeys.path]);
-        await stmt.finalize();
     }
 
     async selectAllAlbums() : Promise<Array<Album>> {
         const db = await this.getDatabase();
-        return await db.all<Array<Album>>(`SELECT DISTINCT ${TrackKeys.album}, ${TrackKeys.album_artist} from ${TABLE_NAME}`);
+        return await db.all<Array<Album>>(`SELECT DISTINCT ${TrackKeys.album}, ${TrackKeys.album_artist} FROM ${TABLE_NAME} ORDER BY ${TrackKeys.album_artist}, ${TrackKeys.album}`);
     }
 
     async getAlbumPath(album : Album) : Promise<string> {

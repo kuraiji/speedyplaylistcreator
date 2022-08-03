@@ -87,6 +87,7 @@ export module PlaylistManagerOld {
         }
 
         async savePlaylist(filePath: string, songPaths: string[]): Promise<void> {
+            //TODO: Check File Path
             if(!(filePath.endsWith(".m3u") || filePath.endsWith(".m3u8"))) {
                 filePath = filePath.concat(".m3u");
             }
@@ -95,7 +96,6 @@ export module PlaylistManagerOld {
             }
             await fs.promises.writeFile(filePath, "#EXTM3U\n");
             for await (const path of songPaths) {
-                //const localPath = path.replace(`${this.baseDir}/`, '');
                 const baseDir = (await PlaylistData.loadJson()).base_dir;
                 const localPath = path.replace(`${baseDir}/`, '');
                 await fs.promises.appendFile(filePath, `#EXTINF:\n${localPath}\n`);
@@ -103,6 +103,7 @@ export module PlaylistManagerOld {
         }
 
         async loadPlaylist(filePath: string): Promise<string[]> {
+            //TODO: Check File Path
             let songPaths = new Array<string>();
             if(!fs.existsSync(filePath)) return songPaths;
             const fileStream = fs.createReadStream(filePath);
@@ -143,9 +144,13 @@ export module PlaylistManagerOld {
 export module PlaylistManager {
     export async function scanSongs(path: string, database: PlaylistDatabase, callback?: [(arg0: number)=>void, (arg0: number)=>void]) {
         const files = await FastGlob(`${path}/**/*.{mp3,flac,wav}`);
-        if(typeof callback !== "undefined") callback[0](files.length);
+        const trackAmt = files.length;
+        if(typeof callback !== "undefined") callback[0](trackAmt);
         let index = 0;
-        for await (const file of files) {
+        //
+        const stmt = await (await database.getDatabase()).prepare(`INSERT INTO tracks VALUES (?,?,?,?,?,?,?)`);
+        //
+        for  (const file of files) {
             if((await promises.stat(file)).size < 50000) {
                 index++;
                 if(typeof callback !== "undefined") callback[1](index);
@@ -168,10 +173,13 @@ export module PlaylistManager {
                 track_num: track_num,
                 disc_num: disc_num,
                 path: file
-            }).then();
-            index++;
-            if(typeof callback !== "undefined") callback[1](index);
+            }, stmt).then(()=>{
+                index++;
+                if (typeof callback !== "undefined") callback[1](index);
+            });
         }
+        while(index < trackAmt - 1) {}
+        await stmt.finalize();
         await PlaylistData.storeJson({base_dir: path});
     }
 
