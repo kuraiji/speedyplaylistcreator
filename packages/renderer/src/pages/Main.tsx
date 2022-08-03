@@ -1,4 +1,4 @@
-import {Component, For, Show, createSignal, onMount} from "solid-js";
+import {Component, For, Show, createSignal, onMount, onCleanup} from "solid-js";
 import Styles from "./Main.module.css"
 import {setNewAlbums, getNewAlbums, getPlaylist, setPlaylist, addToPlaylist} from "@/store";
 import Tile from "@/components/Tile";
@@ -9,6 +9,7 @@ const Main : Component = () => {
 
     const [songModule, setSongModule] = createSignal(false);
     const [tracks, setTracks] = createSignal(new Array<Track>());
+    const [scroll, setScroll] = createSignal(0);
 
     onMount(() => {
         window.manager.getAlbums().then((res) => {
@@ -57,17 +58,24 @@ const Main : Component = () => {
         setPlaylist([...newList]);
     }
 
+    function scrollPosition(el: HTMLElement, accessor: any) {
+        onMount(() => {el.scrollTop = scroll()});
+        const onScroll = (e: any) => setScroll(e.target.scrollTop);
+        el.addEventListener("scroll", onScroll);
+        onCleanup(()=>{el.removeEventListener("scroll", onScroll)});
+    }
+
     return (
         <div class={Styles.outer}>
             <div class={Styles.modules}>
                 <Show when={songModule()} fallback={
-                    <ul class={Styles.albums}>
+                    <ul class={Styles.albums} use:scrollPosition={()=>{}}>
                         <For each={getNewAlbums()}>
                             {(album) => <Tile album={album} callback={onAlbumClick}/>}
                         </For>
                     </ul>
                 }>
-                    <div class={Styles.return} onClick={()=>{setSongModule(false)}}>
+                    <div class={Styles.return} onClick={()=>{setSongModule(false);}}>
                         <p class={Styles.symbol}>⏎</p>
                     </div>
                     <ul class={Styles.tracks}>
